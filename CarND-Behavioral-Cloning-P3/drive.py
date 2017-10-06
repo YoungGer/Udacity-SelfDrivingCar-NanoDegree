@@ -61,6 +61,8 @@ def telemetry(sid, data):
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
+        # image RGB TO BGR
+        image_array = image_array[:,:,::-1]
         # image crop
         image_array = image_array[60:-25, :, :]
         # image resize
