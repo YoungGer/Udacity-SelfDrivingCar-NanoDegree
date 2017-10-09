@@ -17,14 +17,14 @@ class LineFinding():
         self.Minv = None
         
         # fram update params
-        self.q_left_fit = deque(maxlen=5)
-        self.q_right_fit = deque(maxlen=5)
+        self.q_left_fit = deque(maxlen=3)
+        self.q_right_fit = deque(maxlen=3)
         self.last_left_fit = None
         self.last_right_fit = None
         self.last_fit = False
     
     def sanity_check(self, left_fit, right_fit):
-        if abs(left_fit[0]-right_fit[0])/abs(right_fit[0])>1.0 or abs(left_fit[0]-right_fit[0])/abs(left_fit[0])>1.0:
+        if abs(left_fit[0]-right_fit[0])/abs(right_fit[0])>1.0 and abs(left_fit[0]-right_fit[0])/abs(left_fit[0])>1.0:
             return False
         else:
             return True

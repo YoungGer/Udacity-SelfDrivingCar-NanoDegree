@@ -86,11 +86,11 @@ def combined_thresh(img):
     abs_bin = abs_sobel_thresh(img, orient='x', thresh_min=20, thresh_max=100)
     mag_bin = mag_thresh(img, sobel_kernel=3, mag_thresh=(50, 255))
     dir_bin = dir_threshold(img, sobel_kernel=15, thresh=(0.7, 1.3))
-    hls_bin = hls_select(img, thresh=(113, 255))
-    lab_bin = lab_select(img, thresh=(150, 200))
+    #hls_bin = hls_select(img, thresh=(113, 255))
+    lab_bin = lab_select(img, thresh=(142, 255))
 
     combined = np.zeros_like(dir_bin)
-    combined[(abs_bin == 1 | ((mag_bin == 1) & (dir_bin == 1))) | (hls_bin == 1) | (lab_bin == 1)] = 1
+    combined[(abs_bin == 1 | ((mag_bin == 1) & (dir_bin == 1))) | (lab_bin == 1)] = 1
     return combined
 
 # Perspective Transform ----------------------------------------------------
