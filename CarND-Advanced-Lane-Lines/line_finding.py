@@ -24,7 +24,7 @@ class LineFinding():
         self.last_fit = False
     
     def sanity_check(self, left_fit, right_fit):
-        if abs(left_fit[0]-right_fit[0])/abs(right_fit[0])>0.8 or abs(left_fit[0]-right_fit[0])/abs(left_fit[0])>0.8:
+        if abs(left_fit[0]-right_fit[0])/abs(right_fit[0])>1.0 or abs(left_fit[0]-right_fit[0])/abs(left_fit[0])>1.0:
             return False
         else:
             return True
@@ -59,17 +59,17 @@ class LineFinding():
                 left_fit, right_fit = fit_poly2(warped, self.last_left_fit, self.last_right_fit)
             else:
                 left_fit, right_fit = fit_poly(warped)
-                self.q_left_fit.clear()
-                self.q_right_fit.clear()
+                # self.q_left_fit.clear()
+                # self.q_right_fit.clear()
             ## sanity check
             if self.sanity_check(left_fit, right_fit):
-                self.last_left_fit, self.last_right_fit = left_fit, right_fit
                 self.last_fit = True
+                self.last_left_fit, self.last_right_fit = left_fit, right_fit
                 self.q_left_fit.append(left_fit)
                 self.q_right_fit.append(right_fit)
             else:
-                self.last_left_fit, self.last_right_fit = None, None
                 self.last_fit = False
+                self.last_left_fit, self.last_right_fit = None, None
             ## add queues
             if not self.q_left_fit or not self.q_right_fit:
                 self.q_left_fit.append(left_fit)

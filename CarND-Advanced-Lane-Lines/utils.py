@@ -75,14 +75,22 @@ def hls_select(img, thresh=(0, 255)):
     binary_output[(s_channel>thresh[0]) & (s_channel<=thresh[1])] = 1
     return binary_output
 
+def lab_select(img, thresh=(0, 255)):
+    lab = cv2.cvtColor(img, cv2.COLOR_RGB2Lab)
+    b_channel = lab[:,:,2]
+    binary_output = np.zeros_like(img[:,:,0])
+    binary_output[(b_channel>thresh[0]) & (b_channel<=thresh[1])] = 1
+    return binary_output
+
 def combined_thresh(img):
-    abs_bin = abs_sobel_thresh(img, orient='x', thresh_min=50, thresh_max=255)
+    abs_bin = abs_sobel_thresh(img, orient='x', thresh_min=20, thresh_max=100)
     mag_bin = mag_thresh(img, sobel_kernel=3, mag_thresh=(50, 255))
     dir_bin = dir_threshold(img, sobel_kernel=15, thresh=(0.7, 1.3))
-    hls_bin = hls_select(img, thresh=(170, 255))
+    hls_bin = hls_select(img, thresh=(113, 255))
+    lab_bin = lab_select(img, thresh=(150, 200))
 
     combined = np.zeros_like(dir_bin)
-    combined[(abs_bin == 1 | ((mag_bin == 1) & (dir_bin == 1))) | hls_bin == 1] = 1
+    combined[(abs_bin == 1 | ((mag_bin == 1) & (dir_bin == 1))) | (hls_bin == 1) | (lab_bin == 1)] = 1
     return combined
 
 # Perspective Transform ----------------------------------------------------
@@ -229,19 +237,21 @@ def fit_poly2(binary_warped, left_fit, right_fit, show=False):
 
 # Determine Lane Curvature ----------------------------------------------------
 def get_curvature(left_fit, right_fit):
-    y = 719
     ym_per_pix = 30/720 # meters per pixel in y dimension
     xm_per_pix = 3.7/700 # meters per pixel in x dimension
-    
-    left_a= left_fit[0]/ym_per_pix**2*xm_per_pix
-    left_b = left_fit[1]/ym_per_pix*xm_per_pix
-    
-    right_a = right_fit[0]/ym_per_pix**2*xm_per_pix
-    right_b = right_fit[1]/ym_per_pix*xm_per_pix
-    
-    left_curve = (1+(2*left_a*y+left_b)**2)**1.5/abs(2*left_a)
-    right_curve = (1+(2*right_a*y+right_b)**2)**1.5/abs(2*right_a)
-    return np.mean([left_curve, right_curve])
+    y_eval = 719
+
+    ploty = np.linspace(0, 719, num=720)
+    left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
+    right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
+
+    left_fit_cr = np.polyfit(ploty*ym_per_pix, left_fitx*xm_per_pix, 2)
+    right_fit_cr = np.polyfit(ploty*ym_per_pix, right_fitx*xm_per_pix, 2)
+
+    left_curverad = ((1 + (2*left_fit_cr[0]*y_eval*ym_per_pix + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
+    right_curverad = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
+
+    return np.mean([left_curverad, right_curverad])
 
 # Determine Distance From Lane Center ----------------------------------------------------
 def get_diffcenter(left_fit, right_fit):
