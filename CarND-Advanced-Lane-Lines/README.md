@@ -66,13 +66,13 @@ To demonstrate this step, I will describe how I apply the distortion correction 
 
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines 32 through 86 in `utils.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines 32 through 94 in `utils.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
 
 ![这里写图片描述](http://img.blog.csdn.net/20171008203528962?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvWW91bmdfR3k=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
-The code for my perspective transform includes a function called `perspective_trans()`, which appears in lines 88 through 92 in the file `utils.py` . The `perspective_trans()` function takes as inputs source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
+The code for my perspective transform includes a function called `perspective_trans()`, which appears in lines 96 through 100 in the file `utils.py` . The `perspective_trans()` function takes as inputs source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
 
 ```python
 src = np.float32([[577,463],[707,463],[244,688],[1059,688]])
@@ -95,17 +95,17 @@ I verified that my perspective transform was working as expected by drawing tran
 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial  which appears in lines 94 through 228 in the file `utils.py`  kinda like this:
+Then I did some other stuff and fit my lane lines with a 2nd order polynomial  which appears in lines 102 through 236 in the file `utils.py`  kinda like this:
 
 ![这里写图片描述](http://img.blog.csdn.net/20171008204225671?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvWW91bmdfR3k=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-I did this in lines 230 through 244 in my code in `utils.py`
+I did this in lines 238 through 269 in my code in `utils.py`
 
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
-I implemented this step in lines 275 through 299 in my code in `utils.py` in the function `impose_lane()`.  Here is an example of my result on a test image:
+I implemented this step in lines 285 through 309 in my code in `utils.py` in the function `impose_lane()`.  Here is an example of my result on a test image:
 
 ![这里写图片描述](http://img.blog.csdn.net/20171008204459909?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvWW91bmdfR3k=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 

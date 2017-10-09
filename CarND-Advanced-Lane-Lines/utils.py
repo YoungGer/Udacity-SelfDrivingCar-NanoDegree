@@ -304,6 +304,6 @@ def impose_lane(warped, undist, left_fit, right_fit, Minv):
     # Warp the blank back to original image space using inverse perspective matrix (Minv)
     newwarp = cv2.warpPerspective(color_warp, Minv, (warped.shape[1], warped.shape[0])) 
     # Combine the result with the original image
-    result = cv2.addWeighted(undist, 1, newwarp, 0.3, 0)
+    result = cv2.addWeighted(undist[:,:,:3], 1, newwarp, 0.3, 0)
     #return result
     return result
