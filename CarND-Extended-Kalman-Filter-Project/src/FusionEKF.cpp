@@ -1,5 +1,4 @@
 #include "FusionEKF.h"
-#include "tools.h"
 #include "Eigen/Dense"
 #include <iostream>
 
@@ -8,7 +7,6 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using std::vector;
 
-Tools tools;
 /*
  * Constructor.
  */
@@ -101,14 +99,14 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       cout<<"laser size: "<<measurement_pack.raw_measurements_.size()<<endl;
       ekf_.x_ << measurement_pack.raw_measurements_[0], measurement_pack.raw_measurements_[1], 0, 0;
     }
-    previous_timestamp_ = measurement_pack.timestamp_;
 
+    previous_timestamp_ = measurement_pack.timestamp_;
     // done initializing, no need to predict or update
     is_initialized_ = true;
     return;
   }
 
-  cout<<"Finish Initial"<<endl;
+
 
   /*****************************************************************************
    *  Prediction
@@ -121,10 +119,9 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
      * Update the process noise covariance matrix.
      * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
-  cout<<"Curr type: "<<measurement_pack.sensor_type_<<endl;
+
   //compute the time elapsed between the current and previous measurements
-  float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0; //dt - expressed in seconds
-  previous_timestamp_ = measurement_pack.timestamp_;
+  double dt = (double(measurement_pack.timestamp_) - double(previous_timestamp_)) / 1000000.0; //dt - expressed in seconds
   float dt_2 = dt * dt;
   float dt_3 = dt_2 * dt;
   float dt_4 = dt_3 * dt;
@@ -141,7 +138,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
          0, dt_3/2*noise_ay, 0, dt_2*noise_ay;
   ekf_.Predict();
 
-  cout<<"Finish Prediction"<<endl;
   /*****************************************************************************
    *  Update
    ****************************************************************************/
@@ -174,4 +170,5 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   cout << "P_ = " << ekf_.P_ << endl;
 
   //cout<<"Finish Update"<<endl;
+  previous_timestamp_ = measurement_pack.timestamp_;
 }
