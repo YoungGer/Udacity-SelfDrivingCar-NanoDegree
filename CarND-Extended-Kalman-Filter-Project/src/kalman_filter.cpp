@@ -2,6 +2,8 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
+const float DoublePI = 2 * M_PI;
+
 // Please note that the Eigen library does not initialize 
 // VectorXd or MatrixXd objects with zeros upon creation.
 
@@ -54,8 +56,37 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   TODO:
     * update the state by using Extended Kalman Filter equations
   */
-  VectorXd z_pred = H_ * x_;
+
+  // Calculate z_pred using non-linear fit
+  float px = x_[0];
+  float py = x_[1];
+  float vx = x_[2];
+  float vy = x_[3];
+  float c1 = px*px + py*py;
+  // //check division by zero
+  // if(c1 < .000000001) {
+  //   px += .001;
+  //   py += .001;
+  //   c1 = sqrt(px * px + py * py);
+  // }
+  float rho, phi, rho_dot;
+  rho = sqrt(c1);
+  if(rho < 0.000001)
+    rho = 0.000001;
+  phi = atan2(py, px);
+  rho_dot = (px*vx+py*vy)/rho;
+  VectorXd z_pred = VectorXd(3);
+  z_pred << rho, phi, rho_dot;
+  // Calculate difference
+  // normalize y to be in [-pi, pi]
   VectorXd y = z - z_pred;
+  while(y(1) > M_PI){
+    y(1) -= DoublePI;
+  }
+  while(y(1) < -M_PI){
+    y(1) += DoublePI;
+  }
+
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   MatrixXd Si = S.inverse();

@@ -87,9 +87,9 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       Convert radar from polar to cartesian coordinates and initialize state.
       */
       cout<<"radar size: "<<measurement_pack.raw_measurements_.size()<<endl;
-      float l = measurement_pack.raw_measurements_[0];
-      float alpha = measurement_pack.raw_measurements_[1];
-      float l1 = measurement_pack.raw_measurements_[2];
+      double l = measurement_pack.raw_measurements_[0];
+      double alpha = measurement_pack.raw_measurements_[1];
+      double l1 = measurement_pack.raw_measurements_[2];
       ekf_.x_ << l*cos(alpha), l*sin(alpha), l1*cos(alpha), l1*sin(alpha);
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
@@ -130,8 +130,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   ekf_.F_(1, 3) = dt;  
   // update Q
   ekf_.Q_ = MatrixXd(4, 4);
-  float noise_ax = 9;
-  float noise_ay = 9;
+  float noise_ax = 9.0;
+  float noise_ay = 9.0;
   ekf_.Q_ <<  dt_4/4*noise_ax, 0, dt_3/2*noise_ax, 0,
          0, dt_4/4*noise_ay, 0, dt_3/2*noise_ay,
          dt_3/2*noise_ax, 0, dt_2*noise_ax, 0,

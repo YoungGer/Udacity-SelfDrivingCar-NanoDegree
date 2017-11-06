@@ -1,8 +1,8 @@
 #ifndef KALMAN_FILTER_H_
 #define KALMAN_FILTER_H_
 #include "Eigen/Dense"
-#include "tools.h"
 #include <iostream>
+#include <math.h>
 
 using namespace std;
 
