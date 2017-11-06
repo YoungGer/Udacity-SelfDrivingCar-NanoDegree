@@ -68,6 +68,12 @@ public:
    */
   void UpdateEKF(const Eigen::VectorXd &z);
 
+  /**
+   * Updates the state by using Extended Kalman Filter equations
+   * @param y The difference between measurement and predicted state at k+1
+   */
+  void KF(const Eigen::VectorXd &y);
+
 };
 
 #endif /* KALMAN_FILTER_H_ */
