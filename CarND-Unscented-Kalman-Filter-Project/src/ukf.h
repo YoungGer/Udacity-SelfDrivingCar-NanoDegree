@@ -102,6 +102,16 @@ public:
    * @param meas_package The measurement at k+1
    */
   void UpdateRadar(MeasurementPackage meas_package);
+
+  /**
+   * Updates the state and the state covariance matrix using a radar measurement.
+   * @param {MeasurementPackage} meas_package
+   * @param {Zsig} sigma points in measurement space
+   * @param {z_pred} mean predicted measurement
+   * @param {S} predicted measurement covariance
+   */
+  void UKF_Update(MeasurementPackage meas_package, MatrixXd Zsig, VectorXd z_pred, MatrixXd S);
+
 };
 
 #endif /* UKF_H */
