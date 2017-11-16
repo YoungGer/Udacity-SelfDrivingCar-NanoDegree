@@ -217,15 +217,15 @@ void UKF::Prediction(double delta_t) {
     Xsig_pred_(1,i) = p_y2;
     Xsig_pred_(2,i) = v2;
 
-    cout<<"before yaw2:"<<yaw2<<endl;
-    if (yaw2> M_PI) {
-      yaw2 -= (long((yaw2-M_PI)/2.0/M_PI) + 1 ) *2*M_PI;
-    }
-    cout<<"middle yaw2: "<<yaw2<<endl;
-    if (yaw2<-M_PI) {
-      yaw2 += (long((-M_PI-yaw2)/2.0/M_PI)+1 ) *2*M_PI;
-    }
-    cout<<"after yaw2:"<<yaw2<<endl;
+//    cout<<"before yaw2:"<<yaw2<<endl;
+//    if (yaw2> M_PI) {
+//      yaw2 -= (long((yaw2-M_PI)/2.0/M_PI) + 1 ) *2*M_PI;
+//    }
+//    cout<<"middle yaw2: "<<yaw2<<endl;
+//    if (yaw2<-M_PI) {
+//      yaw2 += (long((-M_PI-yaw2)/2.0/M_PI)+1 ) *2*M_PI;
+//    }
+//    cout<<"after yaw2:"<<yaw2<<endl;
 
     Xsig_pred_(3,i) = yaw2;
     Xsig_pred_(4,i) = yawd2;
