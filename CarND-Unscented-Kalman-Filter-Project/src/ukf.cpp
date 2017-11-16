@@ -94,7 +94,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     } else if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
       double x0 = meas_package.raw_measurements_[0];
       double y0 = meas_package.raw_measurements_[1];
-      x_ << x0, y0, 0, atan2(y0, x0), 0;
+      x_ << x0, y0, 0, 0, 0;
     }
     // check or zeros
     if (fabs(x_(0))<0.001) {
