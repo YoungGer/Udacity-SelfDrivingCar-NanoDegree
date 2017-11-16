@@ -117,4 +117,5 @@ public:
 
 };
 
+void NormalizeAngle(double& phi);
 #endif /* UKF_H */
