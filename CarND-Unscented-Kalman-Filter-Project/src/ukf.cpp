@@ -24,10 +24,10 @@ UKF::UKF() {
   P_ = MatrixXd(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 30;
+  std_a_ = 1.0;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 30;
+  std_yawdd_ = 0.5; // 0.5/0.044 0.25/0.036 0.6/0.04
 
   // Laser measurement noise standard deviation position1 in m
   std_laspx_ = 0.15;
@@ -111,15 +111,12 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     time_us_ = meas_package.timestamp_;
     is_initialized_ = true;
 
-    cout<<"Initialization Finished"<<endl;
     return;
   }
 
   // Prediction
   double delta_t = (meas_package.timestamp_ - time_us_) / 1000000.0;
   UKF::Prediction(delta_t);
-
-  cout<<"Prediction Finished"<<endl;
 
   // Update
   if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
@@ -129,8 +126,6 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   }
 
   time_us_ = meas_package.timestamp_;
-  cout<<"Update Finished"<<endl;
-
 }
 
 /**
@@ -160,9 +155,7 @@ void UKF::Prediction(double delta_t) {
   P_aug(5,5) = std_a_*std_a_;
   P_aug(6,6) = std_yawdd_*std_yawdd_;
   //create square root matrix
-  cout<<"start calu sqrt of a matrix"<<endl;
   MatrixXd A = P_aug.llt().matrixL();
-  cout<<"end calu sqrt of a matrix"<<endl;
   //create augmented sigma points
   Xsig_aug.col(0) = x_aug;
   for (int i = 0; i < n_aug_; ++i) {
@@ -170,11 +163,9 @@ void UKF::Prediction(double delta_t) {
     Xsig_aug.col(i+1+n_aug_) = x_aug - sqrt(lambda_+n_aug_)*A.col(i);
   }
 
-  cout<<"P4"<<endl;
-  cout<<"Iteration Number: "<<2 * n_aug_ + 1<<endl;
+
   // Predict Processed Sigma Points Xsig_pred
   for (int i = 0; i < 2 * n_aug_ + 1; ++i) {
-    cout<<"Curr i Start: "<<i<<endl;
     // define some variable
     double p_x = Xsig_aug(0,i);
     double p_y = Xsig_aug(1,i);
@@ -190,25 +181,12 @@ void UKF::Prediction(double delta_t) {
       p_x2 = p_x + v/yawd*(sin(yaw+yawd*delta_t)-sin(yaw)) + 1.0/2*delta_t*delta_t*cos(yaw)*nu_a;
       p_y2 = p_y + v/yawd*(-cos(yaw+yawd*delta_t)+cos(yaw)) + 1.0/2*delta_t*delta_t*sin(yaw)*nu_a;
       v2 = v + delta_t*nu_a;
-      cout<<"----------"<<endl;
-      cout<<"yaw: "<<yaw<<endl;
-      cout<<"yawd: "<<yawd<<endl;
-      cout<<"delta_t: "<<delta_t<<endl;
-      cout<<"nu_yawdd: "<<nu_yawdd<<endl;
-      cout<<"A:"<<A<<endl;
-      cout<<"----------"<<endl;
       yaw2 = yaw + delta_t*yawd + 1.0/2*delta_t*delta_t*nu_yawdd;
       yawd2 = yawd + delta_t*nu_yawdd;
     }else{
       p_x2 = p_x + v*cos(yaw)*delta_t + 1.0/2*delta_t*delta_t*cos(yaw)*nu_a;
       p_y2 = p_y + v*sin(yaw)*delta_t + 1.0/2*delta_t*delta_t*sin(yaw)*nu_a;
       v2 = v + delta_t*nu_a;
-      cout<<"----------"<<endl;
-      cout<<"yaw: "<<yaw<<endl;
-      cout<<"yawd: "<<yawd<<endl;
-      cout<<"delta_t: "<<delta_t<<endl;
-      cout<<"nu_yawdd: "<<nu_yawdd<<endl;
-      cout<<"----------"<<endl;
       yaw2 = yaw + delta_t*yawd + 1.0/2*delta_t*delta_t*nu_yawdd;
       yawd2 = yawd + delta_t*nu_yawdd;
     }
@@ -217,21 +195,10 @@ void UKF::Prediction(double delta_t) {
     Xsig_pred_(1,i) = p_y2;
     Xsig_pred_(2,i) = v2;
 
-//    cout<<"before yaw2:"<<yaw2<<endl;
-//    if (yaw2> M_PI) {
-//      yaw2 -= (long((yaw2-M_PI)/2.0/M_PI) + 1 ) *2*M_PI;
-//    }
-//    cout<<"middle yaw2: "<<yaw2<<endl;
-//    if (yaw2<-M_PI) {
-//      yaw2 += (long((-M_PI-yaw2)/2.0/M_PI)+1 ) *2*M_PI;
-//    }
-//    cout<<"after yaw2:"<<yaw2<<endl;
-
     Xsig_pred_(3,i) = yaw2;
     Xsig_pred_(4,i) = yawd2;
   }
 
-  cout<<"P5"<<endl;
   // calculate mean and variance of Xsig_pred
   //set weights
   weights_(0) = lambda_ /(lambda_+n_aug_);
@@ -423,6 +390,17 @@ void UKF::UKF_Update(MeasurementPackage meas_package, MatrixXd Zsig, VectorXd z_
   if (z_diff(1)<-M_PI) {
     z_diff(1) += (int((-M_PI-z_diff(1))/2.0/M_PI)+1 ) *2*M_PI;
   }
+
+  // update
   x_ += K*(z_diff);
   P_ -= K*S*K.transpose();
+
+  // NIS calculate
+  if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
+    NIS_radar_ = z_diff.transpose()*S.inverse()*z_diff;
+    cout<<"NIS,radar,"<<NIS_radar_<<endl;
+  } else if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
+    NIS_laser_ = z_diff.transpose()*S.inverse()*z_diff;
+    cout<<"NIS,laser,"<<NIS_laser_<<endl;
+  }
 }
