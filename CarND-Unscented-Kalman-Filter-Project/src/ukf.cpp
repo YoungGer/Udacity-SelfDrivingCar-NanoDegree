@@ -90,7 +90,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       double alpha = meas_package.raw_measurements_[1];
       double l1 = meas_package.raw_measurements_[2];
       // init
-      x_ << l*cos(alpha), l*sin(alpha), l1, alpha, 0;
+      x_ << l*cos(alpha), l*sin(alpha), l1, 0, 0;
     } else if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
       double x0 = meas_package.raw_measurements_[0];
       double y0 = meas_package.raw_measurements_[1];
