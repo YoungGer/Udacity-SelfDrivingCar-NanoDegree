@@ -42,8 +42,9 @@ struct ground_truth {
  * Struct representing one landmark observation measurement.
  */
 struct LandmarkObs {
-	
+
 	int id;				// Id of matching landmark in the map.
+    int ii;             // the iith element
 	double x;			// Local (vehicle coordinates) x position of landmark observation [m]
 	double y;			// Local (vehicle coordinates) y position of landmark observation [m]
 };

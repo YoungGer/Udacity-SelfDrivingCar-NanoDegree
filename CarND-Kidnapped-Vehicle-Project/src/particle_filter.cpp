@@ -111,14 +111,14 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 
     for (int i = 0; i < observations.size(); i++) {
 
-        int current_j;
+        int current_j, id_j;
         double current_smallest_error = BIG_NUMBER;
 
         for (int j = 0; j < predicted.size(); j++) {
 
             const double dx = predicted[j].x - observations[i].x;
             const double dy = predicted[j].y - observations[i].y;
-            //const double id_j = predicted[j].id;
+            const int id_j = predicted[j].id;
             const double error = dx * dx + dy * dy;
 
             if (error < current_smallest_error) {
@@ -126,7 +126,8 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
                 current_smallest_error = error;
             }
         }
-        observations[i].id = current_j;
+        observations[i].ii = current_j;
+        observations[i].id = id_j;
     }
 
 }
@@ -176,6 +177,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
             LandmarkObs observation = {
                     observations[j].id,
+                    0,
                     x_m,
                     y_m
             };
@@ -194,6 +196,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
             if (dist < sensor_range){
                 LandmarkObs curr_landmark = {
                         id_l_i,
+                        0,
                         x_l_i,
                         y_l_i
                 };
@@ -219,8 +222,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
                 //cout<<"1"<<endl;
                 //cout<<"observations id: "<<map_observations[j].id<<endl;
                 //cout<<"effect_landmark_list size: "<<effect_landmark_list.size()<<endl;
-                double x_l = effect_landmark_list[map_observations[j].id].x;
-                double y_l = effect_landmark_list[map_observations[j].id].y;
+                double x_l = effect_landmark_list[map_observations[j].ii].x;
+                double y_l = effect_landmark_list[map_observations[j].ii].y;
                 //cout<<"2"<<endl;
                 double std_x = std_landmark[0];
                 double std_y = std_landmark[1];
@@ -228,7 +231,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
                 //cout<<"3"<<endl;
                 //update
                 weight_p *= p_one_landmark;
-                //particles[i].associations.push_back(map_observations[j].id);
+
+                particles[i].associations.push_back(map_observations[j].id);
                 //particles[i].sense_x.push_back(x_m);
                 //particles[i].sense_y.push_back(y_m);
             }
