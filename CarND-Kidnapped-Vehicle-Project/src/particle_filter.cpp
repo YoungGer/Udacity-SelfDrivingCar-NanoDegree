@@ -31,9 +31,9 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
     num_particles = 100;
 
 
-    /*
+    /*******************************************************
      * Set particles
-     */
+     ******************************************************/
     double std_x = std[0];
     double std_y = std[1];
     double std_theta = std[2];
@@ -53,9 +53,9 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
         particles.push_back(curr_particle);
     }
 
-    /*
+    /******************************************************
      * Set others
-     */
+     ******************************************************/
     weights.assign(num_particles, 1.0);
     is_initialized = true;
 
@@ -70,7 +70,6 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
     //  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
     //  http://www.cplusplus.com/reference/random/default_random_engine/
 
-    cout<<"Prediction Start"<<endl;
 
     double std_x = std_pos[0];
     double std_y = std_pos[1];
@@ -97,7 +96,6 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
         particles[i].theta += dist_theta(gen);
     }
 
-    cout<<"Prediction Finished"<<endl;
 }
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
@@ -146,15 +144,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     //   and the following is a good resource for the actual equation to implement (look at equation
     //   3.33
     //   http://planning.cs.uiuc.edu/node99.html
-    cout<<"Update Start"<<endl;
+
     // iterate particles
     weights.clear();
     for (int i = 0; i < num_particles; ++i) {
 
-        cout<<"------------------"<<endl;
-        cout<<"particle: "<<i<<endl;
-        cout<<"------------------"<<endl;
-
+        // get particle infomation
         double x_p = particles[i].x;
         double y_p = particles[i].y;
         double theta = particles[i].theta;
@@ -164,13 +159,14 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
         particles[i].sense_x.clear();
         particles[i].sense_y.clear();
 
-        // coordinate system change  from VEHICLE'S to MAP'S
+        /*****************************************************
+         * Step 1: coordinate system change from VEHICLE'S to MAP'S
+         ****************************************************/
         vector<LandmarkObs> map_observations;
         for (int j = 0; j < observations.size(); ++j) {
             double x_o = observations[j].x;
             double y_o = observations[j].y;
 
-            // coordinate system change  from VEHICLE'S to MAP'S
             double x_m, y_m;
             x_m = x_p + cos(theta) * x_o - sin(theta) * y_o;
             y_m = y_p + sin(theta) * x_o + cos(theta) * y_o;
@@ -184,9 +180,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
             map_observations.push_back(observation);
         }
-        cout<<"coordinate system change finished"<<endl;
 
-        // choose landmarks which has the distance with particle less than sensor_range
+        /*****************************************************
+         * Step 2: choose landmarks which has the distance with particle less than sensor_range
+         ****************************************************/
         vector<LandmarkObs> effect_landmark_list;
         for (int k=0; k < map_landmarks.landmark_list.size(); ++k) {
             float x_l_i = map_landmarks.landmark_list[k].x_f;
@@ -203,36 +200,38 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
                 effect_landmark_list.push_back(curr_landmark);
             }
         }
-        cout<<"less than sensor_range finished"<<endl;
 
-        // associate landmarks in range to landmarks obeservations
+
+        /*****************************************************
+         * Step 3: associate landmarks in range to landmarks obeservations
+         ****************************************************/
         ParticleFilter::dataAssociation(effect_landmark_list, map_observations);
-        cout<<"association finished"<<endl;
 
-        // update weight corner case
+        /*****************************************************
+         * Step 4: update weight
+         ****************************************************/
         double weight_p = 1.0;
         if (effect_landmark_list.size()==0){
-            // update particle
             weight_p = 0.0;
         } else{
-            // update weight
             for (int j = 0; j < map_observations.size(); ++j) {
+                // obeseration im map coordinate
                 double x_m = map_observations[j].x;
                 double y_m = map_observations[j].y;
-                //cout<<"1"<<endl;
-                //cout<<"observations id: "<<map_observations[j].id<<endl;
-                //cout<<"effect_landmark_list size: "<<effect_landmark_list.size()<<endl;
+                // landmark im map coordinate
                 double x_l = effect_landmark_list[map_observations[j].ii].x;
                 double y_l = effect_landmark_list[map_observations[j].ii].y;
-                //cout<<"2"<<endl;
+
                 double std_x = std_landmark[0];
                 double std_y = std_landmark[1];
                 double p_one_landmark = 1/(2*M_PI*std_x*std_y)*exp(-( pow(x_m-x_l,2)/(2*std_x*std_x) + pow(y_m-y_l,2)/(2*std_y*std_y) ));
-                //cout<<"3"<<endl;
-                //update
+
                 weight_p *= p_one_landmark;
 
                 particles[i].associations.push_back(map_observations[j].id);
+
+                // !!!!! I need help in follow two lines, please help me!!!!!
+                // !!!!! I cannot run my program when I uncomment the follow two lines. Why and How can I solve it?
                 //particles[i].sense_x.push_back(x_m);
                 //particles[i].sense_y.push_back(y_m);
             }
@@ -241,9 +240,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
         // update particle
         particles[i].weight = weight_p;
         weights.push_back(weight_p);
-
-
-        cout<<"Update Finished"<<endl;
     }
 }
 
@@ -251,7 +247,6 @@ void ParticleFilter::resample() {
     // TODO: Resample particles with replacement with probability proportional to their weight.
     // NOTE: You may find std::discrete_distribution helpful here.
     //   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
-    cout<<"Resample Start"<<endl;
     discrete_distribution<int> index (weights.begin(), weights.end());
 
     std::vector<Particle> new_particles;
@@ -260,7 +255,6 @@ void ParticleFilter::resample() {
     }
     particles = new_particles;
 
-    cout<<"Resample Finished"<<endl;
 }
 
 Particle ParticleFilter::SetAssociations(Particle& particle, const std::vector<int>& associations,
