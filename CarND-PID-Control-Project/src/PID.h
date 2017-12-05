@@ -1,6 +1,8 @@
 #ifndef PID_H
 #define PID_H
 
+#include <iostream>
+
 class PID {
 public:
   /*
@@ -16,6 +18,13 @@ public:
   double Kp;
   double Ki;
   double Kd;
+
+
+  /*
+  * User Difined
+  */ 
+  double cte_prev;
+  int step;
 
   /*
   * Constructor
