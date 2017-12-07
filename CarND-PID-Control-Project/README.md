@@ -21,7 +21,9 @@ The different effects of PID components:
 - I component: It represents the compensate to systematic bias. For example, if the steering of the car has been wrongly fixed and has a tendency to steer a bit to the left. Even if we set steer to zero, the car can steer to left due to the systematic bias. That's where the I component take effect. It accumulates systematic errors and amends the errors.
 - D component: It represents the counter strength to the P component. The pure P component can easily lead to overshooting and oscillation. With the help of D component which decreases as the car gets closer to the target path, the car can avoid the over-shooting previously caused by the P controller alone.
 
-Final parameters are tuned by hand. The parameters are:
+Final parameters were tuned by hand. First I set I and D components to 0 and only tuned P components. When P was big, the car had a huge response to error and it easily came to over-shooting. When P was small, the car could not fix its orientation in time. Final P component was chosen to make the car have a stable and slight oscillation around the target path. After setting P component, I started to set D component. D component represents the counter strength to the P component. I tuned the D component so that the car had less overshooting and oscillation. Finally, I tuned I component. I component represents the compensate to systematic bias. Because stematic bias had not been taken into consideration in our simulator. I tried some values and finally set I component to 0.
+
+The final parameters are:
 
 - P: 0.2
 - I: 0.0
