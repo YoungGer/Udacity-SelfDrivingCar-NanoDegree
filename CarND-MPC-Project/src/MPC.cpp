@@ -149,8 +149,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
   typedef CPPAD_TESTVECTOR(double) Dvector;
 
-  double delta_prev {0};
-  double a_prev {0.1};
+  double delta_prev = 0.0;
+  double a_prev = 0.1;
 
   double x = state[0];
   double y = state[1];
@@ -199,11 +199,23 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     vars_upperbound[i] = 0.436332;
   }
 
+  // constrain delta to be the previous control for the latency time
+  for (int i = delta_start; i < delta_start + latency_ind; i++) {
+    vars_lowerbound[i] = delta_prev;
+    vars_upperbound[i] = delta_prev;
+  }
+
   // Acceleration/decceleration upper and lower limits.
   // NOTE: Feel free to change this to something else.
   for (int i = a_start; i < n_vars; i++) {
     vars_lowerbound[i] = -1.0;
     vars_upperbound[i] = 1.0;
+  }
+
+  // constrain a to be the previous control for the latency time 
+  for (int i = a_start; i < a_start+latency_ind; i++) {
+    vars_lowerbound[i] = a_prev;
+    vars_upperbound[i] = a_prev;
   }
 
   // Lower and upper limits for the constraints
@@ -273,5 +285,5 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   //
   // {...} is shorthand for creating a vector, so auto x1 = {1.0,2.0}
   // creates a 2 element double vector.
-  return {solution.x[delta_start],   solution.x[a_start]};
+  return {solution.x[delta_start+latency_ind],   solution.x[a_start+latency_ind]};
 }
