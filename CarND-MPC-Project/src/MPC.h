@@ -19,6 +19,9 @@ class MPC {
   // Return the first actuatotions.
   vector<double> Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs);
 
+private:
+    double delta_prev;
+    double a_prev;
 };
 
 #endif /* MPC_H */

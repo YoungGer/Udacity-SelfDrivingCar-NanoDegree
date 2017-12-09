@@ -5,8 +5,11 @@
 
 using CppAD::AD;
 
+/*
+Presettings ------------------------------------------------
+*/
 // TODO: Set the timestep length and duration
-const size_t N = 12;
+const size_t N = 10;
 const double dt = 0.05;
 const int latency_ind = 2;  //latency  in units of dt (100ms)
 
@@ -19,7 +22,16 @@ size_t epsi_start = cte_start + N;
 size_t delta_start = epsi_start + N;
 size_t a_start = delta_start + N - 1;
 
-double ref_v = 40;
+double ref_v = 75;
+
+// Penalization coefficients:
+constexpr double coeff_cte = 1.;
+constexpr double coeff_epsi = 1.;
+constexpr double coeff_v = 1.;
+constexpr double coeff_penalize_delta = 200.0;  
+constexpr double coeff_penalize_a = 1.;       
+constexpr double coeff_derivative_delta = 600.0;
+constexpr double coeff_derivative_a = 100.;     
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -52,21 +64,21 @@ class FG_eval {
 
     // The part of the cost based on the reference state.
     for (int t = 0; t < N; t++) {
-      fg[0] += CppAD::pow(vars[cte_start + t], 2);
-      fg[0] += CppAD::pow(vars[epsi_start + t], 2);
-      fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2);
+      fg[0] += coeff_cte * CppAD::pow(vars[cte_start + t], 2);
+      fg[0] += coeff_epsi * CppAD::pow(vars[epsi_start + t], 2);
+      fg[0] += coeff_v * CppAD::pow(vars[v_start + t] - ref_v, 2);
     }
 
     // Minimize the use of actuators.
     for (int t = 0; t < N - 1; t++) {
-      fg[0] += CppAD::pow(vars[delta_start + t], 2);
-      fg[0] += CppAD::pow(vars[a_start + t], 2);
+      fg[0] += coeff_penalize_delta *CppAD::pow(vars[delta_start + t], 2);
+      fg[0] += coeff_penalize_a * CppAD::pow(vars[a_start + t], 2);
     }
 
     // Minimize the value gap between sequential actuations.
     for (int t = 0; t < N - 2; t++) {
-      fg[0] += CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-      fg[0] += CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
+      fg[0] += coeff_derivative_delta *CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+      fg[0] += coeff_derivative_a * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
     }
 
     //
@@ -108,8 +120,8 @@ class FG_eval {
       AD<double> delta0 = vars[delta_start + t - 1];
       AD<double> a0 = vars[a_start + t - 1];
 
-      AD<double> f0 = coeffs[0] + coeffs[1] * x0;
-      AD<double> psides0 = CppAD::atan(coeffs[1]);
+      AD<double> f0 = coeffs[0] + coeffs[1]*x0 + coeffs[2]*CppAD::pow(x0,2) + coeffs[3]*CppAD::pow(x0,3);;
+      AD<double> psides0 = CppAD::atan( coeffs[1] + 2*coeffs[2]*x0 + 3*coeffs[3]*x0*x0 );
 
       // Here's `x` to get you started.
       // The idea here is to constraint this value to be 0.
@@ -141,6 +153,9 @@ class FG_eval {
 MPC::MPC() {
   pred_path_x_.resize(N-1);
   pred_path_y_.resize(N-1);
+
+  delta_prev = 0.0;
+  a_prev = 0.1;
 }
 MPC::~MPC() {}
 
@@ -148,9 +163,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   bool ok = true;
 
   typedef CPPAD_TESTVECTOR(double) Dvector;
-
-  double delta_prev = 0.0;
-  double a_prev = 0.1;
 
   double x = state[0];
   double y = state[1];
@@ -276,6 +288,10 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   auto cost = solution.obj_value;
   std::cout << "Cost " << cost << std::endl;
  
+  // previous 
+  delta_prev = solution.x[delta_start + latency_ind];
+  a_prev = solution.x[a_start + latency_ind];
+
   for (int i = 1; i < N; i++) {
     pred_path_x_[i-1] = solution.x[x_start + i];
     pred_path_y_[i-1] = solution.x[y_start + i];
