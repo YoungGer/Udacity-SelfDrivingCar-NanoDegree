@@ -65,6 +65,22 @@ Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
   return result;
 }
 
+Eigen::MatrixXd transformMap2Car(double x, double y, double psi, const vector<double> & ptsx, const vector<double> & ptsy) {
+
+  assert(ptsx.size() == ptsy.size());
+  int len = ptsx.size();
+
+  Eigen::MatrixXd car_points = Eigen::MatrixXd(2,len);
+
+  for (int i=0; i<len ; ++i){
+    car_points(0,i) =   cos(psi) * (ptsx[i] - x) + sin(psi) * (ptsy[i] - y);
+    car_points(1,i) =  -sin(psi) * (ptsx[i] - x) + cos(psi) * (ptsy[i] - y);  
+  } 
+
+  return car_points;
+
+}
+
 int main() {
   uWS::Hub h;
 
@@ -98,13 +114,40 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
-          double steer_value;
-          double throttle_value;
+
+          // transform form map coordinates to car's coordinates
+          Eigen::MatrixXd car_points = transformMap2Car(px, py, psi, ptsx, ptsy);
+          Eigen::VectorXd ptsx_car = car_points.row(0);
+          Eigen::VectorXd ptsy_car = car_points.row(1);
+
+          // fited 3 order polynomial
+          auto coeffs = polyfit(ptsx_car, ptsy_car, 3);
+
+          // calculate error term cte & epsi
+          double cte = polyeval(coeffs, 0);
+          double epsi = - atan(coeffs[1]);
+
+          // state
+          Eigen::VectorXd state(6);
+          state << 0, 0, 0, v, cte, epsi;
+
+          // solve
+          auto next_state = mpc.Solve(state, coeffs);
+
+          // get contro variable
+          double steer_value = next_state[0];
+          double throttle_value = next_state[1];
+
+          std::cout<<"-------------------"<<std::endl;
+          std::cout<<"steer_value: "<<steer_value<<std::endl;
+          std::cout<<"throttle_value: "<<throttle_value<<std::endl;
+          std::cout<<"-------------------"<<std::endl;
+
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = steer_value;
+          msgJson["steering_angle"] = -steer_value/0.436332;
           msgJson["throttle"] = throttle_value;
 
           //Display the MPC predicted trajectory 
