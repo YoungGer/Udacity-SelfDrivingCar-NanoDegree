@@ -1,6 +1,28 @@
 # CarND-Path-Planning-Project
-Self-Driving Car Engineer Nanodegree Program
+
+## Reflection
+
+Following the rubric I made sure that the car was programmed to do the following:
+
+- Perform no collusions
+- Avoid jerks
+- Not exceeding the acceleration point
+- Maintaining proper speed
+- Driving in the lanes
+- Smooth transition into other lanes
+- Making sure transition is less than 3 seconds
+
+
+My algorithm follows steps below:
+
+1. set decision flags (`left_change`, `right_change`, `too_close`) through sensor fusion data. (line 253-304 in `main.cpp`)
+2. decision speed and lane. (line 306-314 in `main.cpp`)
+3. construct data points `ptsx`、 `ptsy` from original path (for smooth) and future points (coordinate with `car_s` and `lane`). (line 316-375 in `main.cpp`)
+4. using spline to fit `ptsx` and `ptsy`. (line 377-380 in `main.cpp`)
+5. generate path points. (line 382-426 in `main.cpp`)
+
    
+
 ### Simulator.
 You can download the Term3 Simulator which contains the Path Planning Project from the [releases tab (https://github.com/udacity/self-driving-car-sim/releases).
 
@@ -137,4 +159,3 @@ still be compilable with cmake and make./
 
 ## How to write a README
 A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
-
