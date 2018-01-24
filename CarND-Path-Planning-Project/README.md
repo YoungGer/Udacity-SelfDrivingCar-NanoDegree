@@ -16,7 +16,7 @@ Following the rubric I made sure that the car was programmed to do the following
 My algorithm follows steps below:
 
 1. set decision flags (`left_change`, `right_change`, `too_close`) through sensor fusion data. (line 253-304 in `main.cpp`)
-2. decision speed and lane. (line 306-314 in `main.cpp`)
+2. make decision about speed and lane. (line 306-314 in `main.cpp`)
 3. construct data points `ptsx`、 `ptsy` from original path (for smooth) and future points (coordinate with `car_s` and `lane`). (line 316-375 in `main.cpp`)
 4. using spline to fit `ptsx` and `ptsy`. (line 377-380 in `main.cpp`)
 5. generate path points. (line 382-426 in `main.cpp`)
