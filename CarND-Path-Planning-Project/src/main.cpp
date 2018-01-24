@@ -246,36 +246,71 @@ int main() {
 
             // Added ------------------------------------------
             int prev_size = previous_path_x.size();
-
-            // avoid collision ------------------------------------------
             if (prev_size >0) {
               car_s = end_path_s;
             }
 
+            // core flag -------------------------------------------------
+            bool left_change = true;
+            bool right_change = true;
             bool too_close = false;
 
+            if (lane==0) left_change = false;
+            if (lane==2) right_change = false;
+            
+            // iterate sensor fusion to update core flag--------------------
             for (int i = 0; i < sensor_fusion.size(); ++i)
             {
+              // current cat stats
               float d = sensor_fusion[i][6];
-              if (d<(2+4*lane+2) && d>(2+4*lane-2) ) {
-                double vx = sensor_fusion[i][3];
-                double vy = sensor_fusion[i][4];
-                double check_speed = sqrt(vx*vx+vy*vy);
-                double check_car_s = sensor_fusion[i][5];
 
-                check_car_s += ((double)prev_size*0.02*check_speed);
+              double vx = sensor_fusion[i][3];
+              double vy = sensor_fusion[i][4];
+              double check_speed = sqrt(vx*vx+vy*vy);
+              double check_car_s = sensor_fusion[i][5];
+              check_car_s += ((double)prev_size*0.02*check_speed);
 
+              int check_lane;
+              if (d>=0 && d<=4) {
+                check_lane = 0;
+              } else if (d>4 && d<=8) {
+                check_lane = 1;
+              } else if (d>8 && d<=12) {
+                check_lane = 2;
+              } else {
+                check_lane = -1;
+              }
+
+              // too_close check
+              if (check_lane==lane) {
                 if ((check_car_s>car_s) && ((check_car_s-car_s)<30)) {
-                  //ref_vel = 29.5;
                   too_close = true;
+                }
+              }
+
+              // left_change check
+              if (check_lane==lane-1) {
+                if ((check_car_s-car_s<30) && (check_car_s-car_s>-15)) {
+                  left_change = false;
+                }
+              }
+
+              // right_change check
+              if (check_lane==lane+1) {
+                if ((check_car_s-car_s<30) && (check_car_s-car_s>-15)) {
+                  right_change = false;
                 }
               }
             }
 
+            // decide according to core flag---------------------------------
             if (too_close) {
-              ref_vel -= .224;
-            } else if (ref_vel < 49.5) {
+              if (left_change) lane -= 1;
+              else if (right_change) lane += 1;
+              else    ref_vel -= .224;
+            } else {
               ref_vel += .224;
+              if (ref_vel > 49.5) ref_vel = 49.5;
             }
 
             // add points  ------------------------------------------
