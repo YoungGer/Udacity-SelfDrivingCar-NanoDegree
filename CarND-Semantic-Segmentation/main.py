@@ -4,6 +4,7 @@ import helper
 import warnings
 from distutils.version import LooseVersion
 import project_tests as tests
+import numpy as np
 
 
 # Check TensorFlow Version
@@ -123,9 +124,11 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     """
     sess.run(tf.global_variables_initializer())
 
-    loss_list = []
+    
     
     for e in range(epochs):
+        loss_list = []
+        iter_cnt = 0
         for img, label, in get_batches_fn(batch_size):
             feed_dict={input_image: img,
                       correct_label: label,
@@ -133,8 +136,12 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                       learning_rate: 1e-4}
             _, loss = sess.run([train_op, cross_entropy_loss], feed_dict=feed_dict)
             loss_list.append(loss)
-            print('epoch %i, loss: %f'%(e, loss))
-    return loss_list
+            print('epoch %i, iter %i, loss: %f'%(e, iter_cnt, loss))
+            iter_cnt += 1
+        print ("------------------------------")
+        print ('epoch %i, mean loss: %f'%(e, np.mean(loss_list)))
+        print ("------------------------------")
+    # return loss_list
 
 tests.test_train_nn(train_nn)
 
@@ -154,8 +161,8 @@ def run():
     # You'll need a GPU with at least 10 teraFLOPS to train on.
     #  https://www.cityscapes-dataset.com/
 
-    epochs = 7
-    batch_size = 5
+    epochs = 50
+    batch_size = 10
 
         
     with tf.Session(graph=tf.Graph()) as sess:
