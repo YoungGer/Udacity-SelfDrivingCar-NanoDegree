@@ -1,3 +1,7 @@
+import rospy
+from pid import PID
+from yaw_controller import YawController
+from math import tanh
 
 GAS_DENSITY = 2.858
 ONE_MPH = 0.44704
@@ -12,15 +16,17 @@ class Controller(object):
             steer_ratio = steer_ratio,
             min_speed = min_speed,
             max_lat_accel = max_lat_accel,
-            max_steer_angle = max_steer_angl
+            max_steer_angle = max_steer_angle
         )
-
+	
+	self.prev_throttle = 0
         self.prev_time = None
 
     def control(self, twist_cmd, current_velocity, dbw_enabled):
         # TODO: Change the arg, kwarg list to suit your needs
         # Return throttle, brake, steer
-
+	
+	#return 0.1,0,0
         # corner case
         if not self.prev_time:
             self.prev_time = rospy.get_time()
@@ -44,8 +50,12 @@ class Controller(object):
             error = delta_v,
             sample_time = delta_t
         )
+	rospy.loginfo("control: "+str(control))
         if control > 0:
-            throttle = sin(control)
+            throttle = tanh(control)
+	    throttle = max(0.0, min(1.0, throttle))
+  	    if throttle - self.prev_throttle > 0.1:
+	        throttle = self.prev_throttle + 0.1
         else:
             throttle = 0
 
@@ -55,5 +65,6 @@ class Controller(object):
             linear_velocity = desired_linear_velocity,
             angular_velocity = desired_angular_velocity,
             current_velocity = current_linear_velocity)
-
+	
+	self.prev_throttle = throttle
         return throttle, 0., steering

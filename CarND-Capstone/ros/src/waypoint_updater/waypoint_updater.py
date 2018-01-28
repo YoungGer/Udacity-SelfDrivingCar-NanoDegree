@@ -21,7 +21,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 40 # Number of waypoints we will publish. You can change this number
 
 
 class WaypointUpdater(object):
@@ -103,7 +103,7 @@ class WaypointUpdater(object):
         self.final_waypoints = self.base_waypoints[closest_idx:closest_idx+LOOKAHEAD_WPS]
         # add waypoints speed
         for i in range(len(self.final_waypoints)):
-            self.final_waypoints[i].twist.twist.linear.x = 10
+            self.final_waypoints[i].twist.twist.linear.x = 25 * 0.447
         return 
 
     def publish_final_waypoints(self):
