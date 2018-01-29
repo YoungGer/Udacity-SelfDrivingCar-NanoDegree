@@ -32,21 +32,32 @@ class WaypointUpdater(object):
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-
+        # rospy.Subscriber('/traffic_waypoint', PoseStamped, self.traffic_cb)
+        # rospy.Subscriber('/obstacle_waypoint', PoseStamped, self.obstacle_cb)
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         # TODO: Add other member variables you need below
-
+        self.current_pose = None
+        self.base_waypoints = None
+        self.final_waypoints = None
         rospy.spin()
 
     def pose_cb(self, msg):
         # TODO: Implement
-        pass
+        # get current pose
+        self.current_pose = msg.pose
+        # get final wps through current_pose and final_waypoints
+        self.get_final_waypoints()
+        # publish
+        if self.final_waypoints:
+            self.publish_final_waypoints()
+
+
 
     def waypoints_cb(self, waypoints):
         # TODO: Implement
-        pass
+        self.base_waypoints = msg.waypoints
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
@@ -69,6 +80,35 @@ class WaypointUpdater(object):
             dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
             wp1 = i
         return dist
+
+    # Added -----------------------------------------------
+    def find_closet_waypoint(self):
+        # current location
+        curr_x, curr_y = self.current_pose.position.x, self.current_pose.position.y
+        # iterate
+        closest_dist = 1e32
+        closest_idx = None
+        for i, wp in enumerate(self.base_waypoints):
+            wp_x = wp.pose.pose.position.x
+            wp_y = wp.pose.pose.position.y
+            dist = (wp_x-curr_x)**2 + (wp_y-curr_y)**2
+            if dist<closest_dist:
+                closest_dist = dist
+                closest_idx = i
+        return closest_idx
+
+    def get_final_waypoints(self):
+        closest_idx = self.find_closet_waypoint()
+        self.final_waypoints = self.base_waypoints[closest_idx:]
+        return 
+
+    def publish_final_waypoints(self):
+        lane = Lane()
+        lane.header.frame_id = '/world'
+        lane.header.stamp = rospy.Time(0)
+        lane.waypoints = self.final_waypoints
+        self.final_waypoints_pub.publish(lane)
+
 
 
 if __name__ == '__main__':
