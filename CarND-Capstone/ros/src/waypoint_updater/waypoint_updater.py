@@ -55,7 +55,7 @@ class WaypointUpdater(object):
 
 
 
-    def waypoints_cb(self, waypoints):
+    def waypoints_cb(self, msg):
         # TODO: Implement
         self.base_waypoints = msg.waypoints
 
