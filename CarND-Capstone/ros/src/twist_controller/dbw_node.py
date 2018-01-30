@@ -57,7 +57,12 @@ class DBWNode(object):
         self.dbw_enabled = False
         self.current_velocity = None
         self.twist_cmd = None
-        self.controller = Controller()
+        self.controller = Controller(
+            wheel_base = wheel_base, 
+            steer_ratio = steer_ratio, 
+            min_speed = 0.0, 
+            max_lat_accel = max_lat_accel, 
+            max_steer_angle = max_steer_angle)
 
         # TODO: Subscribe to all the topics you need to
         rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_cb)
@@ -86,7 +91,10 @@ class DBWNode(object):
             #                                                     <dbw status>,
             #                                                     <any other argument you need>)
             if self.dbw_enabled:
-                throttle, brake, steering = self.controller.control()
+                throttle, brake, steering = self.controller.control(
+                    twist_cmd = self.twist_cmd,
+                    current_velocity = self.current_velocity,
+                    dbw_enabled = self.dbw_enabled)
                 self.publish(throttle, brake, steering)
             rate.sleep()
 

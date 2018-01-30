@@ -86,7 +86,7 @@ class WaypointUpdater(object):
         # current location
         curr_x, curr_y = self.current_pose.position.x, self.current_pose.position.y
         # iterate
-        closest_dist = 1e32
+        closest_dist = float("inf")
         closest_idx = None
         for i, wp in enumerate(self.base_waypoints):
             wp_x = wp.pose.pose.position.x
@@ -98,8 +98,12 @@ class WaypointUpdater(object):
         return closest_idx
 
     def get_final_waypoints(self):
+        # get final waypoints
         closest_idx = self.find_closet_waypoint()
-        self.final_waypoints = self.base_waypoints[closest_idx:]
+        self.final_waypoints = self.base_waypoints[closest_idx:closest_idx+LOOKAHEAD_WPS]
+        # add waypoints speed
+        for i in range(len(self.final_waypoints)):
+            self.final_waypoints[i].twist.twist.linear.x = 10
         return 
 
     def publish_final_waypoints(self):
