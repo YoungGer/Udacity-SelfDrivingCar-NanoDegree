@@ -32,7 +32,7 @@
 
 constexpr int LOOP_RATE = 30; //processing frequency
 
-const int PUB_SIZE = 1;
+const int PUB_SIZE = 10;
 
 int main(int argc, char **argv)
 {

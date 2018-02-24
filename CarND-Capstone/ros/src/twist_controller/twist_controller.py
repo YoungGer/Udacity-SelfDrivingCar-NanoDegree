@@ -50,7 +50,6 @@ class Controller(object):
             error = delta_v,
             sample_time = delta_t
         )
-	rospy.loginfo("control: "+str(control))
         if control > 0:
             throttle = tanh(control)
 	    throttle = max(0.0, min(1.0, throttle))
