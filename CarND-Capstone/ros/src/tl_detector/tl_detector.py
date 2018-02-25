@@ -119,7 +119,8 @@ class TLDetector(object):
         # iterate
         closest_dist = float("inf")
         closest_idx = None
-
+        if not self.base_waypoints:
+            return -1
         for i, wp in enumerate(self.base_waypoints):
             wp_x = wp.pose.pose.position.x
             wp_y = wp.pose.pose.position.y
@@ -143,7 +144,10 @@ class TLDetector(object):
             self.prev_light_loc = None
             return False
 
-        cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+        self.camera_image.encoding = "rgb8"
+        cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "rgb8")
+        
+        #cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 
         #Get classification
         return self.light_classifier.get_classification(cv_image)
@@ -172,15 +176,16 @@ class TLDetector(object):
 
 
         # get state
-        if light_wp is not None:
-            #state = self.get_light_state(light)
-            state = TrafficLight.RED
-            rospy.loginfo("Here get wp---------------------")
+        state = self.get_light_state(light)
+        #state = TrafficLight.RED
+
+        if (light_wp is not None) and state<=1:
+            rospy.loginfo("should stop--------------------")
             return light_wp, state
-        
-        # final return
-        rospy.loginfo("no wp *****************************")
-        return -1, TrafficLight.UNKNOWN
+        else:
+            rospy.loginfo("go go*****************************")
+            return -1, TrafficLight.UNKNOWN
+            #return -1, TrafficLight.RED
 
 if __name__ == '__main__':
     try:

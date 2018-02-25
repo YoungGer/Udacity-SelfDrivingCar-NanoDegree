@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Int32, Float32
 from dbw_mkz_msgs.msg import ThrottleCmd, SteeringCmd, BrakeCmd, SteeringReport
 from geometry_msgs.msg import TwistStamped
 import math
@@ -57,17 +57,24 @@ class DBWNode(object):
         self.dbw_enabled = False
         self.current_velocity = None
         self.twist_cmd = None
+        self.red_light = None
         self.controller = Controller(
             wheel_base = wheel_base, 
             steer_ratio = steer_ratio, 
             min_speed = 0.0, 
             max_lat_accel = max_lat_accel, 
-            max_steer_angle = max_steer_angle)
+            max_steer_angle = max_steer_angle,
+            vehicle_mass = vehicle_mass, 
+            fuel_capacity = fuel_capacity, 
+            decel_limit = decel_limit, 
+            wheel_radius = wheel_radius)
 
         # TODO: Subscribe to all the topics you need to
         rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_cb)
         rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_cb)
         rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_cb)
+        rospy.Subscriber('/red_light', Int32, self.red_light_cb)
+        rospy.Subscriber('/dist2stop', Float32, self.dist2stop_cb)
 
         self.loop()
 
@@ -80,6 +87,12 @@ class DBWNode(object):
     def dbw_enabled_cb(self, msg):
         self.dbw_enabled = bool(msg.data)
 
+    def red_light_cb(self, msg):
+        self.red_light = msg.data
+
+    def dist2stop_cb(self, msg):
+        self.dist2stop = msg.data
+
     def loop(self):
         rate = rospy.Rate(50) # 50Hz
         while not rospy.is_shutdown():
@@ -89,13 +102,15 @@ class DBWNode(object):
             #                                                     <proposed angular velocity>,
             #                                                     <current linear velocity>,
             #                                                     <dbw status>,
-            #                                                     <any other argument you need>)
+            #                                                     <any other argument you need>) 
             if self.dbw_enabled:
                 throttle, brake, steering = self.controller.control(
                     twist_cmd = self.twist_cmd,
                     current_velocity = self.current_velocity,
-                    dbw_enabled = self.dbw_enabled)
-		self.publish(throttle, brake, steering)
+                    dbw_enabled = self.dbw_enabled, dist2stop = self.dist2stop)
+                # if self.red_light == 1 and self.current_velocity < 1.0:
+                #     brake = 1
+                self.publish(throttle, brake, steering)
             rate.sleep()
 
     def publish(self, throttle, brake, steer):
