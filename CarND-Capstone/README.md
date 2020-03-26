@@ -2,9 +2,27 @@ This is the project repo for the final project of the Udacity Self-Driving Car N
 
 Please use **one** of the two installation options, either native **or** docker installation.
 
-### Email
+### System Integration Project
 
-771657815@qq.com
+This is the project repo of team Laters for the final project of the Udacity Self-Driving Car Nanodegree: Programming a Real Self-Driving Car.
+
+The goal of the project is to fully implement with ROS the main modules of an autonomous vehicle: Perception, Planning and Control, which will be tested on Udacity´s Self Driving Car ´Carla´ around a test track using waypoint navigation.
+
+For validation the code was tested using a simulator where the car drives around a highway test track with traffic lights.
+
+### Project Overview
+
+In the figure below you can find an overview of the main software components and how they communicate with each other and with the car or simulator.
+
+Carla is equipped with a drive-by-wire system (DBW) and hence the throttle, brake and steering can be electronically controlled. In the graph below the Control Module outputs Throttle, Brake and Steering signal commands to the car or simulator. These commands are set to be published at 50Hz since this is the frequency that Carla´s DBW system expects.
+
+As introduced in the Udacity walkthrough videos, the project is organized in three parts:
+
+- the Waypoint Updater;
+- the Drive-By-Wire (DBW);
+- the Traffic Light Detection.
+
+![project overview]()
 
 ### Native Installation
 
