@@ -22,7 +22,7 @@ As introduced in the Udacity walkthrough videos, the project is organized in thr
 - the Drive-By-Wire (DBW);
 - the Traffic Light Detection.
 
-![project overview]()
+![project overview](/CarND-Capstone/imgs/project-rosgraph.png)
 
 ### Native Installation
 
